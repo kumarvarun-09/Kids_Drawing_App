@@ -27,6 +27,7 @@ import androidx.core.view.get
 import androidx.lifecycle.lifecycleScope
 import com.comiccoder.kidsdrawingapp.R
 import com.comiccoder.kidsdrawingapp.views.DrawingView
+import com.github.chrisbanes.photoview.PhotoView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult())
         { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
-                val imageBG = findViewById<ImageView>(R.id.ivBackground)
+                val imageBG = findViewById<PhotoView>(R.id.ivBackground)
                 imageBG.setImageURI(result.data?.data)
             }
         }
@@ -278,7 +279,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun shareImage(result: String)
     {
-        MediaScannerConnection.scanFile(this, arrayOf(result), null){
+        MediaScannerConnection.scanFile(this@MainActivity, arrayOf(result), null){
                 _, uri->
             val shareIntent = Intent()
             shareIntent.action = Intent.ACTION_SEND

@@ -10,8 +10,10 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.comiccoder.kidsdrawingapp.R
+import com.github.chrisbanes.photoview.PhotoView
 
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
