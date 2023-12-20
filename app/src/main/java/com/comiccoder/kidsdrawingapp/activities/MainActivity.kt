@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -45,13 +46,17 @@ class MainActivity : AppCompatActivity() {
     private var ibUndo: ImageButton? = null
     private var ibRedo: ImageButton? = null
     private var ibSave: ImageButton? = null
+    private var lockDrawBtn: Button? = null
     private var mImageButtonCurrentPaint: ImageButton? = null
     private var linearLayoutPaintColors: LinearLayout? = null
     private var customProgressDialog: Dialog? = null
     private val permissionNames = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
     } else {
-        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
     }
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
@@ -74,7 +79,7 @@ class MainActivity : AppCompatActivity() {
                     val pickIntent =
                         Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                     openGalleryLauncher.launch(pickIntent)
-                } else if(it.key == permissionName || (it.key == Manifest.permission.WRITE_EXTERNAL_STORAGE && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)){
+                } else if (it.key == permissionName || (it.key == Manifest.permission.WRITE_EXTERNAL_STORAGE && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)) {
                     Toast.makeText(
                         this,
                         "Permission Denied",
@@ -90,6 +95,8 @@ class MainActivity : AppCompatActivity() {
         drawingView = findViewById(R.id.drawingView)
         drawingView?.setSizeForBrush(20F)
         ibBrushSize = findViewById(R.id.ibBrushSize)
+        lockDrawBtn = findViewById(R.id.lockDrawBtn)
+
         ibBrushSize?.setOnClickListener {
             showBrushSizeChooserDialog()
         }
@@ -114,11 +121,22 @@ class MainActivity : AppCompatActivity() {
                     val myBitmap = getBitmapFromView(flDrawingView)
                     saveBitmapFile(myBitmap)
                 }
-            }
-            else{
+            } else {
                 Snackbar.make(it, "Please provide storage permission", Snackbar.LENGTH_LONG).show()
             }
         }
+
+        lockDrawBtn?.setOnClickListener(View.OnClickListener {
+            if(drawingView!!.visibility == View.VISIBLE) {
+                drawingView!!.visibility = View.GONE
+                lockDrawBtn!!.text = "🔒"
+            }
+            else if(drawingView!!.visibility == View.GONE) {
+                drawingView!!.visibility = View.VISIBLE
+                lockDrawBtn!!.text = "🔓"
+            }
+        })
+
         linearLayoutPaintColors = findViewById(R.id.llPaintColors)
         mImageButtonCurrentPaint = linearLayoutPaintColors!![0] as ImageButton
         mImageButtonCurrentPaint?.setImageDrawable(
@@ -192,7 +210,11 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(title)
         builder.setMessage(message)
-        builder.setPositiveButton("Give Permission") { _, _ -> requestPermission.launch(permissionNames) }
+        builder.setPositiveButton("Give Permission") { _, _ ->
+            requestPermission.launch(
+                permissionNames
+            )
+        }
         builder.setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
         builder.create().show()
     }
@@ -262,25 +284,21 @@ class MainActivity : AppCompatActivity() {
         return result
     }
 
-    private fun showProgressDialog(){
+    private fun showProgressDialog() {
         customProgressDialog = Dialog(this@MainActivity)
         customProgressDialog?.setContentView(R.layout.dialog_custom_progress)
         customProgressDialog?.show()
     }
 
-    private fun cancelProgressDialog()
-    {
-        if(customProgressDialog != null)
-        {
+    private fun cancelProgressDialog() {
+        if (customProgressDialog != null) {
             customProgressDialog?.dismiss()
             customProgressDialog = null
         }
     }
 
-    private fun shareImage(result: String)
-    {
-        MediaScannerConnection.scanFile(this@MainActivity, arrayOf(result), null){
-                _, uri->
+    private fun shareImage(result: String) {
+        MediaScannerConnection.scanFile(this@MainActivity, arrayOf(result), null) { _, uri ->
             val shareIntent = Intent()
             shareIntent.action = Intent.ACTION_SEND
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
